@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Game Translator</title>
+<style>
+/* ================================================================
+   CSS Variables & Reset
+   ================================================================ */
+:root {
+  --primary: #6366f1;
+  --primary-hover: #4f46e5;
+  --primary-light: #e0e7ff;
+  --bg: #f8fafc;
+  --bg-card: #ffffff;
+  --text: #1e293b;
+  --text-secondary: #64748b;
+  --border: #e2e8f0;
+  --success: #22c55e;
+  --success-bg: #dcfce7;
+  --warning: #eab308;
+  --warning-bg: #fef9c3;
+  --danger: #ef4444;
+  --danger-bg: #fee2e2;
+  --radius: 10px;
+  --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,.1), 0 4px 6px -2px rgba(0,0,0,.05);
+  --font: "Segoe UI", -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", sans-serif;
+  --font-mono: "Cascadia Code", "Consolas", "Courier New", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f172a;
+    --bg-card: #1e293b;
+    --text: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --border: #334155;
+    --primary-light: #312e81;
+    --success-bg: #14532d;
+    --warning-bg: #422006;
+    --danger-bg: #450a0a;
+    --shadow: 0 1px 3px rgba(0,0,0,.3);
+    --shadow-lg: 0 10px 15px -3px rgba(0,0,0,.4);
+  }
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+/* ================================================================
+   Layout
+   ================================================================ */
+.app-header {
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow);
+}
+.app-title {
+  font-size: 18px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.app-title .icon { font-size: 24px; }
+.config-badge {
+  font-size: 12px;
+  color: var(--text-secondary);
+  background: var(--bg);
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+}
+.config-badge .dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+.dot-green { background: var(--success); }
+.dot-red { background: var(--danger); }
+
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* ================================================================
+   Tabs
+   ================================================================ */
+.tab-nav {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 20px;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 4px;
+  border: 1px solid var(--border);
+}
+.tab-btn {
+  flex: 1;
+  padding: 10px 16px;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all .15s;
+  font-family: var(--font);
+}
+.tab-btn:hover { color: var(--text); background: var(--bg); }
+.tab-btn.active {
+  background: var(--primary);
+  color: white;
+  box-shadow: 0 1px 3px rgba(99,102,241,.4);
+}
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ================================================================
+   Cards
+   ================================================================ */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow);
+  margin-bottom: 16px;
+}
+.card h3 {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: var(--text);
+}
+
+/* ================================================================
+   Forms
+   ================================================================ */
+textarea, input[type="text"], select {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  transition: border-color .15s;
+}
+textarea:focus, input[type="text"]:focus, select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(99,102,241,.15);
+}
+textarea { resize: vertical; min-height: 100px; }
+label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+.form-row {
+  display: flex;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 12px;
+}
+.form-row > * { flex: 1; }
+
+/* ================================================================
+   Buttons
+   ================================================================ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: var(--font);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.btn-primary {
+  background: var(--primary);
+  color: white;
+}
+.btn-primary:hover { background: var(--primary-hover); }
+.btn-primary:disabled {
+  background: var(--border);
+  color: var(--text-secondary);
+  cursor: not-allowed;
+}
+.btn-outline {
+  background: transparent;
+  color: var(--primary);
+  border: 1px solid var(--primary);
+}
+.btn-outline:hover { background: var(--primary-light); }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+.btn-danger { background: var(--danger); color: white; }
+.btn-danger:hover { background: #dc2626; }
+.btn-success { background: var(--success); color: white; }
+.btn-success:hover { background: #16a34a; }
+
+/* ================================================================
+   Result display
+   ================================================================ */
+.result-box {
+  margin-top: 16px;
+  padding: 16px;
+  background: var(--bg);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  display: none;
+}
+.result-box.visible { display: block; }
+.result-translation {
+  font-size: 16px;
+  line-height: 1.7;
+  margin-bottom: 12px;
+  padding: 12px;
+  background: var(--bg-card);
+  border-radius: 6px;
+  border-left: 4px solid var(--primary);
+}
+.result-meta {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.result-meta span { display: flex; align-items: center; gap: 4px; }
+.confidence-bar {
+  display: inline-block;
+  width: 60px;
+  height: 8px;
+  background: var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  vertical-align: middle;
+}
+.confidence-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width .3s;
+}
+.conf-high { background: var(--success); }
+.conf-mid { background: var(--warning); }
+.conf-low { background: var(--danger); }
+
+.approve-bar {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.approve-bar input[type="text"] {
+  flex: 1;
+}
+
+/* ================================================================
+   Drop zone
+   ================================================================ */
+.drop-zone {
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--text-secondary);
+  transition: all .2s;
+  cursor: pointer;
+  position: relative;
+}
+.drop-zone:hover, .drop-zone.dragover {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  color: var(--primary);
+}
+.drop-zone input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.drop-zone .icon { font-size: 32px; margin-bottom: 8px; }
+.drop-zone .filename {
+  margin-top: 8px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* ================================================================
+   Progress
+   ================================================================ */
+.progress-area {
+  margin-top: 16px;
+  display: none;
+}
+.progress-area.visible { display: block; }
+.progress-bar-bg {
+  width: 100%;
+  height: 12px;
+  background: var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 6px;
+  width: 0%;
+  transition: width .3s;
+  animation: pulse 1.5s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .7; }
+}
+.progress-text {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 8px;
+  text-align: center;
+}
+
+/* ================================================================
+   Table
+   ================================================================ */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.data-table th {
+  text-align: left;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--text-secondary);
+  padding: 10px 12px;
+  border-bottom: 2px solid var(--border);
+}
+.data-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.data-table tr:hover td { background: var(--bg); }
+.data-table .empty-msg {
+  text-align: center;
+  color: var(--text-secondary);
+  padding: 24px;
+}
+
+/* ================================================================
+   Stats
+   ================================================================ */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.stat-card {
+  background: var(--bg);
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+}
+.stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--primary);
+}
+.stat-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+.category-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.category-bar .name {
+  min-width: 120px;
+  font-size: 13px;
+  text-align: right;
+}
+.category-bar .bar-bg {
+  flex: 1;
+  height: 20px;
+  background: var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.category-bar .bar-fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 4px;
+  min-width: 2px;
+}
+.category-bar .count {
+  min-width: 40px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* ================================================================
+   Toast / notification
+   ================================================================ */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: white;
+  box-shadow: var(--shadow-lg);
+  z-index: 1000;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all .3s;
+  pointer-events: none;
+}
+.toast.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+.toast-success { background: var(--success); }
+.toast-error { background: var(--danger); }
+
+/* ================================================================
+   Spinner
+   ================================================================ */
+.spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin .6s linear infinite;
+  vertical-align: middle;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- ===== Header ===== -->
+<header class="app-header">
+  <div class="app-title">
+    <span class="icon">🎮</span>
+    AI Game Translator
+  </div>
+  <div class="config-badge" id="configBadge">
+    <span class="dot dot-red" id="statusDot"></span>
+    Loading...
+  </div>
+</header>
+
+<!-- ===== Main ===== -->
+<div class="container">
+
+  <!-- Tab Navigation -->
+  <nav class="tab-nav">
+    <button class="tab-btn active" data-tab="translate">翻訳 Translate</button>
+    <button class="tab-btn" data-tab="excel">Excel一括</button>
+    <button class="tab-btn" data-tab="glossary">用語集 Glossary</button>
+    <button class="tab-btn" data-tab="stats">統計 Stats</button>
+  </nav>
+
+  <!-- ==================== Tab: Translate ==================== -->
+  <div class="tab-panel active" id="tab-translate">
+    <div class="card">
+      <h3>テキスト翻訳 / Translate Text</h3>
+      <div style="margin-bottom:12px">
+        <label for="sourceText">原文 (Japanese)</label>
+        <textarea id="sourceText" placeholder="日本語テキストを入力..." rows="3"></textarea>
+      </div>
+      <div class="form-row">
+        <div>
+          <label for="categorySelect">カテゴリ</label>
+          <select id="categorySelect">
+            <option value="">General</option>
+            <option value="skill_effect">Skill / Effect</option>
+            <option value="item_desc">Item Description</option>
+            <option value="ui">UI Text</option>
+            <option value="dialogue">Dialogue</option>
+            <option value="system">System Message</option>
+          </select>
+        </div>
+        <div style="flex:0 0 auto">
+          <label>&nbsp;</label>
+          <button class="btn btn-primary" id="translateBtn" onclick="doTranslate()">
+            翻訳する
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="result-box" id="translateResult">
+      <div class="result-translation" id="resultText"></div>
+      <div class="result-meta">
+        <span>Confidence: <span class="confidence-bar"><span class="confidence-fill" id="resultConfBar"></span></span> <span id="resultConf"></span></span>
+        <span>Model: <span id="resultModel"></span></span>
+        <span>Tokens: <span id="resultTokens"></span></span>
+        <span>Similar: <span id="resultSimilar"></span></span>
+      </div>
+      <div class="approve-bar">
+        <button class="btn btn-sm btn-success" onclick="approveTranslation()">✓ Approve</button>
+        <input type="text" id="correctedText" placeholder="Or type corrected translation...">
+        <button class="btn btn-sm btn-primary" onclick="saveCorrection()">Save Correction</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab: Excel ==================== -->
+  <div class="tab-panel" id="tab-excel">
+    <div class="card">
+      <h3>Excel一括翻訳 / Batch Translate</h3>
+      <div class="drop-zone" id="dropZone">
+        <input type="file" accept=".xlsx" id="excelFile" onchange="handleFileSelect(this)">
+        <div class="icon">📁</div>
+        <div>ドラッグ＆ドロップ or クリック</div>
+        <div>Drop .xlsx file here or click to select</div>
+        <div class="filename" id="fileName" style="display:none"></div>
+      </div>
+      <div class="form-row" style="margin-top:12px">
+        <div>
+          <label for="excelCategory">カテゴリ (optional)</label>
+          <select id="excelCategory">
+            <option value="">Auto / General</option>
+            <option value="skill_effect">Skill / Effect</option>
+            <option value="item_desc">Item Description</option>
+            <option value="ui">UI Text</option>
+            <option value="dialogue">Dialogue</option>
+          </select>
+        </div>
+        <div style="flex:0 0 auto">
+          <label>&nbsp;</label>
+          <button class="btn btn-primary" id="excelBtn" onclick="doExcelTranslate()" disabled>
+            翻訳開始
+          </button>
+        </div>
+      </div>
+
+      <div class="progress-area" id="excelProgress">
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="excelProgressFill"></div>
+        </div>
+        <div class="progress-text" id="excelProgressText">翻訳中... Translating...</div>
+      </div>
+
+      <div class="result-box" id="excelResult">
+        <p style="margin-bottom:12px" id="excelSummary"></p>
+        <a class="btn btn-primary" id="excelDownload" href="#" download>📥 Download Translated File</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab: Glossary ==================== -->
+  <div class="tab-panel" id="tab-glossary">
+    <div class="card">
+      <h3>用語追加 / Add Term</h3>
+      <div class="form-row">
+        <div>
+          <label>原語 (Source)</label>
+          <input type="text" id="glSource" placeholder="必殺技">
+        </div>
+        <div>
+          <label>訳語 (Target)</label>
+          <input type="text" id="glTarget" placeholder="Special Move">
+        </div>
+        <div>
+          <label>備考 (Notes)</label>
+          <input type="text" id="glNotes" placeholder="Optional">
+        </div>
+        <div style="flex:0 0 auto">
+          <label>&nbsp;</label>
+          <button class="btn btn-primary btn-sm" onclick="addGlossary()">追加</button>
+        </div>
+      </div>
+      <div style="display:flex; gap:8px; margin-top:4px">
+        <button class="btn btn-outline btn-sm" onclick="importGlossary()">📤 Import CSV</button>
+        <button class="btn btn-outline btn-sm" onclick="exportGlossary()">📥 Export CSV</button>
+        <input type="file" accept=".csv" id="glossaryCsvInput" style="display:none" onchange="handleGlossaryImport(this)">
+      </div>
+    </div>
+    <div class="card">
+      <h3>用語一覧 / Glossary</h3>
+      <table class="data-table" id="glossaryTable">
+        <thead><tr><th>Source</th><th>Target</th><th>Notes</th><th style="width:60px"></th></tr></thead>
+        <tbody id="glossaryBody">
+          <tr><td class="empty-msg" colspan="4">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ==================== Tab: Stats ==================== -->
+  <div class="tab-panel" id="tab-stats">
+    <div class="card">
+      <h3>翻訳メモリ統計 / Translation Memory Stats</h3>
+      <div class="stat-grid" id="statGrid">
+        <div class="stat-card"><div class="stat-value" id="statEntries">-</div><div class="stat-label">Memory Entries</div></div>
+        <div class="stat-card"><div class="stat-value" id="statUsage">-</div><div class="stat-label">Total Usage</div></div>
+        <div class="stat-card"><div class="stat-value" id="statGlossary">-</div><div class="stat-label">Glossary Terms</div></div>
+      </div>
+      <h3 style="margin-top:20px">カテゴリ別 / By Category</h3>
+      <div id="categoryChart" style="margin-top:12px">
+        <div style="color:var(--text-secondary); font-size:14px">Loading...</div>
+      </div>
+      <button class="btn btn-outline btn-sm" style="margin-top:16px" onclick="loadStats()">🔄 Refresh</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- ===== JavaScript ===== -->
+<script>
+// ----------------------------------------------------------------
+// State
+// ----------------------------------------------------------------
+let lastTranslation = null;
+
+// ----------------------------------------------------------------
+// Tab switching
+// ----------------------------------------------------------------
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    // Load data on tab switch
+    if (btn.dataset.tab === 'glossary') loadGlossary();
+    if (btn.dataset.tab === 'stats') loadStats();
+  });
+});
+
+// ----------------------------------------------------------------
+// API helpers
+// ----------------------------------------------------------------
+async function apiGet(url) {
+  const res = await fetch(url);
+  return res.json();
+}
+async function apiPost(url, data) {
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data),
+  });
+  return { ok: res.ok, status: res.status, data: await res.json() };
+}
+async function apiDelete(url, data) {
+  const res = await fetch(url, {
+    method: 'DELETE',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data),
+  });
+  return { ok: res.ok, data: await res.json() };
+}
+
+function showToast(msg, type='success') {
+  const el = document.getElementById('toast');
+  el.className = 'toast toast-' + type + ' visible';
+  el.textContent = msg;
+  setTimeout(() => el.classList.remove('visible'), 3000);
+}
+
+function setLoading(btn, loading) {
+  if (loading) {
+    btn.dataset.origText = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner"></span> Processing...';
+    btn.disabled = true;
+  } else {
+    btn.innerHTML = btn.dataset.origText || btn.innerHTML;
+    btn.disabled = false;
+  }
+}
+
+// ----------------------------------------------------------------
+// Config
+// ----------------------------------------------------------------
+async function loadConfig() {
+  try {
+    const cfg = await apiGet('/api/config');
+    const badge = document.getElementById('configBadge');
+    const dot = document.getElementById('statusDot');
+    if (cfg.error) {
+      badge.innerHTML = '<span class="dot dot-red"></span> Error: ' + cfg.error;
+    } else {
+      dot.className = 'dot dot-green';
+      badge.innerHTML = '<span class="dot dot-green"></span> ' +
+        cfg.backend.toUpperCase() + ' · ' + cfg.model.split('-').slice(0,2).join(' ');
+    }
+  } catch(e) {
+    document.getElementById('configBadge').innerHTML = '<span class="dot dot-red"></span> Server error';
+  }
+}
+
+// ----------------------------------------------------------------
+// Translate
+// ----------------------------------------------------------------
+async function doTranslate() {
+  const source = document.getElementById('sourceText').value.trim();
+  if (!source) return;
+
+  const btn = document.getElementById('translateBtn');
+  const box = document.getElementById('translateResult');
+  setLoading(btn, true);
+  box.classList.remove('visible');
+
+  try {
+    const {ok, data} = await apiPost('/api/translate', {
+      source: source,
+      category: document.getElementById('categorySelect').value,
+    });
+
+    if (!ok || data.error) {
+      showToast(data.error || 'Translation failed', 'error');
+      return;
+    }
+
+    lastTranslation = { source, ...data };
+    document.getElementById('resultText').textContent = data.translation;
+    document.getElementById('resultConf').textContent = (data.confidence * 100).toFixed(0) + '%';
+    document.getElementById('resultModel').textContent = data.model;
+    document.getElementById('resultTokens').textContent = data.tokens_used;
+    document.getElementById('resultSimilar').textContent = data.similar_count;
+
+    const bar = document.getElementById('resultConfBar');
+    bar.style.width = (data.confidence * 100) + '%';
+    bar.className = 'confidence-fill ' +
+      (data.confidence >= 0.8 ? 'conf-high' : data.confidence >= 0.5 ? 'conf-mid' : 'conf-low');
+
+    document.getElementById('correctedText').value = '';
+    box.classList.add('visible');
+  } catch(e) {
+    showToast('Network error: ' + e.message, 'error');
+  } finally {
+    setLoading(btn, false);
+  }
+}
+
+async function approveTranslation() {
+  if (!lastTranslation) return;
+  const {ok} = await apiPost('/api/memory/approve', {
+    source: lastTranslation.source,
+    target: lastTranslation.translation,
+    category: document.getElementById('categorySelect').value,
+  });
+  if (ok) showToast('Approved and saved to memory');
+  else showToast('Failed to save', 'error');
+}
+
+async function saveCorrection() {
+  if (!lastTranslation) return;
+  const corrected = document.getElementById('correctedText').value.trim();
+  if (!corrected) { showToast('Enter corrected text', 'error'); return; }
+  const {ok} = await apiPost('/api/memory/approve', {
+    source: lastTranslation.source,
+    target: corrected,
+    category: document.getElementById('categorySelect').value,
+  });
+  if (ok) {
+    showToast('Correction saved to memory');
+    document.getElementById('resultText').textContent = corrected;
+  } else {
+    showToast('Failed to save', 'error');
+  }
+}
+
+// Ctrl+Enter to translate
+document.getElementById('sourceText').addEventListener('keydown', e => {
+  if (e.ctrlKey && e.key === 'Enter') doTranslate();
+});
+
+// ----------------------------------------------------------------
+// Excel batch
+// ----------------------------------------------------------------
+let selectedFile = null;
+
+function handleFileSelect(input) {
+  const file = input.files[0];
+  if (!file) return;
+  selectedFile = file;
+  const fn = document.getElementById('fileName');
+  fn.textContent = '📄 ' + file.name;
+  fn.style.display = 'block';
+  document.getElementById('excelBtn').disabled = false;
+  document.getElementById('excelResult').classList.remove('visible');
+}
+
+// Drag and drop
+const dz = document.getElementById('dropZone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+dz.addEventListener('drop', e => {
+  e.preventDefault();
+  dz.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file && file.name.endsWith('.xlsx')) {
+    selectedFile = file;
+    document.getElementById('excelFile').files = e.dataTransfer.files;
+    const fn = document.getElementById('fileName');
+    fn.textContent = '📄 ' + file.name;
+    fn.style.display = 'block';
+    document.getElementById('excelBtn').disabled = false;
+  } else {
+    showToast('Only .xlsx files are supported', 'error');
+  }
+});
+
+async function doExcelTranslate() {
+  if (!selectedFile) return;
+  const btn = document.getElementById('excelBtn');
+  const progress = document.getElementById('excelProgress');
+  const resultBox = document.getElementById('excelResult');
+
+  setLoading(btn, true);
+  progress.classList.add('visible');
+  resultBox.classList.remove('visible');
+
+  // Pulse animation for indeterminate progress
+  document.getElementById('excelProgressFill').style.width = '100%';
+
+  const formData = new FormData();
+  formData.append('file', selectedFile);
+  formData.append('category', document.getElementById('excelCategory').value);
+  formData.append('save_to_memory', 'true');
+
+  try {
+    const res = await fetch('/api/translate/excel', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      showToast(err.error || 'Translation failed', 'error');
+      return;
+    }
+
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const dl = document.getElementById('excelDownload');
+    dl.href = url;
+    dl.download = selectedFile.name.replace('.xlsx', '_translated.xlsx');
+
+    document.getElementById('excelSummary').textContent =
+      '翻訳完了! Translation complete. Click below to download.';
+    resultBox.classList.add('visible');
+    showToast('Excel translation complete!');
+  } catch(e) {
+    showToast('Error: ' + e.message, 'error');
+  } finally {
+    setLoading(btn, false);
+    progress.classList.remove('visible');
+  }
+}
+
+// ----------------------------------------------------------------
+// Glossary
+// ----------------------------------------------------------------
+async function loadGlossary() {
+  const body = document.getElementById('glossaryBody');
+  try {
+    const data = await apiGet('/api/glossary');
+    if (!data.entries || data.entries.length === 0) {
+      body.innerHTML = '<tr><td class="empty-msg" colspan="4">No entries yet</td></tr>';
+      return;
+    }
+    body.innerHTML = data.entries.map(e => `
+      <tr>
+        <td>${esc(e.source)}</td>
+        <td>${esc(e.target)}</td>
+        <td>${esc(e.notes || '')}</td>
+        <td><button class="btn btn-danger btn-sm" onclick="removeGlossary('${esc(e.source)}')" title="Delete">✕</button></td>
+      </tr>
+    `).join('');
+  } catch(e) {
+    body.innerHTML = '<tr><td class="empty-msg" colspan="4">Error loading glossary</td></tr>';
+  }
+}
+
+async function addGlossary() {
+  const source = document.getElementById('glSource').value.trim();
+  const target = document.getElementById('glTarget').value.trim();
+  const notes = document.getElementById('glNotes').value.trim();
+  if (!source || !target) { showToast('Source and target are required', 'error'); return; }
+
+  const {ok} = await apiPost('/api/glossary', {source, target, notes});
+  if (ok) {
+    showToast('Added: ' + source + ' → ' + target);
+    document.getElementById('glSource').value = '';
+    document.getElementById('glTarget').value = '';
+    document.getElementById('glNotes').value = '';
+    loadGlossary();
+  } else {
+    showToast('Failed to add', 'error');
+  }
+}
+
+async function removeGlossary(source) {
+  if (!confirm('Delete "' + source + '"?')) return;
+  const {ok} = await apiDelete('/api/glossary', {source});
+  if (ok) { showToast('Removed: ' + source); loadGlossary(); }
+  else showToast('Failed to remove', 'error');
+}
+
+function importGlossary() {
+  document.getElementById('glossaryCsvInput').click();
+}
+async function handleGlossaryImport(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const formData = new FormData();
+  formData.append('file', file);
+  const res = await fetch('/api/glossary/import', { method: 'POST', body: formData });
+  const data = await res.json();
+  if (data.ok) {
+    showToast('Imported ' + data.imported + ' terms');
+    loadGlossary();
+  } else {
+    showToast(data.error || 'Import failed', 'error');
+  }
+  input.value = '';
+}
+function exportGlossary() {
+  window.location.href = '/api/glossary/export';
+}
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+// ----------------------------------------------------------------
+// Stats
+// ----------------------------------------------------------------
+async function loadStats() {
+  try {
+    const data = await apiGet('/api/stats');
+    if (data.error) {
+      document.getElementById('statEntries').textContent = 'Error';
+      return;
+    }
+    document.getElementById('statEntries').textContent = data.total_entries || 0;
+    document.getElementById('statUsage').textContent = data.total_use_count || 0;
+    document.getElementById('statGlossary').textContent = data.glossary_count || 0;
+
+    // Category chart
+    const chart = document.getElementById('categoryChart');
+    const cats = data.categories || {};
+    const entries = Object.entries(cats).sort((a,b) => b[1] - a[1]);
+    if (entries.length === 0) {
+      chart.innerHTML = '<div style="color:var(--text-secondary)">No data yet. Translate some text to see stats.</div>';
+      return;
+    }
+    const max = Math.max(...entries.map(e => e[1]));
+    chart.innerHTML = entries.map(([name, count]) => `
+      <div class="category-bar">
+        <div class="name">${esc(name || '(general)')}</div>
+        <div class="bar-bg"><div class="bar-fill" style="width:${(count/max*100)}%"></div></div>
+        <div class="count">${count}</div>
+      </div>
+    `).join('');
+  } catch(e) {
+    document.getElementById('statEntries').textContent = '-';
+  }
+}
+
+// ----------------------------------------------------------------
+// Init
+// ----------------------------------------------------------------
+loadConfig();
+</script>
+</body>
+</html>
