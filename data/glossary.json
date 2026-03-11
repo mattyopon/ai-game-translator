@@ -1,0 +1,29 @@
+{
+  "entries": [
+    {
+      "source": "攻撃力",
+      "target": "ATK",
+      "notes": ""
+    },
+    {
+      "source": "防御力",
+      "target": "DEF",
+      "notes": ""
+    },
+    {
+      "source": "HP",
+      "target": "HP",
+      "notes": ""
+    },
+    {
+      "source": "必殺技",
+      "target": "Special Move",
+      "notes": ""
+    },
+    {
+      "source": "クールダウン",
+      "target": "Cooldown",
+      "notes": ""
+    }
+  ]
+}

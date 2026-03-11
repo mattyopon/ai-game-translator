@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+*.pyo
+.env
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# Test files
+test_input.xlsx
+*_translated.xlsx
+
+# Keep data directory but ignore user-specific memory
+data/translation_memory.json

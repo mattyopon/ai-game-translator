@@ -1,0 +1,34 @@
+# AI Game Translation Tool — Configuration
+# ゲーム翻訳AIツール設定
+
+# Backend: "auto" (APIキーがあればAPI、なければCLI), "api" (Anthropic SDK), "cli" (Claude Code CLI)
+# cli を使えばサブスクリプション（Pro/Max）で翻訳できる（APIキー不要）
+backend: "auto"
+
+api:
+  # Model for translation
+  model: "claude-sonnet-4-20250514"
+  max_tokens: 1024
+  temperature: 0.3
+
+translation:
+  source_lang: "Japanese"
+  target_lang: "English"
+  domain: "game"
+
+memory:
+  db_path: "data/translation_memory.json"
+  top_k: 5
+
+glossary:
+  path: "data/glossary.json"
+
+style_guide:
+  path: "data/style_guide.md"
+
+review:
+  auto_approve_threshold: 0.8
+
+batch:
+  max_concurrent: 5
+  delay: 0.5
